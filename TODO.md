@@ -4,8 +4,8 @@
 - [x] 1. Install GitHub CLI: `brew install gh`. (Issue with PATH/npm alias; manual step needed)
 - [x] 2. Git init: `git init`.
 - [x] 3. Create root `.gitignore`.
-- [ ] 4. Initial commit.
+- [x] 4. Initial commit.
 - [ ] 5. Authenticate gh: `gh auth login`.
 - [ ] 6. Create public GitHub repo and push.
-- [ ] 7. Update README.md.
+- [x] 7. Update README.md.
 - [ ] Followup: Deployments (frontend/backend/mobile).
