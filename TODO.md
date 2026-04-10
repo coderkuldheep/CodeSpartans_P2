@@ -8,4 +8,5 @@
 - [ ] 5. Authenticate gh: `gh auth login`.
 - [ ] 6. Create public GitHub repo and push.
 - [x] 7. Update README.md.
-- [ ] Followup: Deployments (frontend/backend/mobile).
+- [x] 8. Add manual-setup.md with gh/repo alternatives.
+- [ ] Followup: User create/push to GitHub repo.
