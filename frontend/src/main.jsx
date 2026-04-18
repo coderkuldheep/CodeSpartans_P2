@@ -21,6 +21,7 @@ const queryClient = new QueryClient({
   },
 })
 
+const basename = '/CodeSpartans_P2'
 const router = createBrowserRouter([
   {
     path: '/',
@@ -57,7 +58,7 @@ const router = createBrowserRouter([
       },
     ],
   },
-])
+], { basename })
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
