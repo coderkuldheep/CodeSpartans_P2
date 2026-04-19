@@ -10,7 +10,7 @@ const COLUMNS = [
   { key: 'manager_name', label: 'Manager' },
   { key: 'rate', label: 'Rate' },
   { key: 'quantity', label: 'Qty' },
-  { key: 'date_of_order', label: 'Order Date' },
+  { key: 'order_date', label: 'Order Date' },
 ]
 
 export default function Sales() {
@@ -19,12 +19,12 @@ export default function Sales() {
   const [isOpen, setIsOpen] = useState(false)
   const [editMode, setEditMode] = useState(false)
 
-  const { data: sales, loading, create, update, del } = useApi('sales/')
-  const { data: products } = useApi('products/')
+  const { data: sales = [], loading, create, update, del } = useApi('sales/')
+  const { data: products = [] } = useApi('products/')
 
-  const filteredData = sales.filter(sale => 
-    sale.manager_name.toLowerCase().includes(search.toLowerCase()) ||
-    sale.rate.toString().includes(search)
+  const filteredData = sales.filter((sale) =>
+    (sale.manager_name || '').toLowerCase().includes(search.toLowerCase()) ||
+    String(sale.rate || '').includes(search)
   )
 
   const handleEdit = (sale) => {
@@ -39,23 +39,29 @@ export default function Sales() {
     }
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const formData = new FormData(e.target)
     const data = Object.fromEntries(formData)
+
     data.rate = parseFloat(data.rate) || 0
     data.quantity = parseInt(data.quantity) || 0
     data.product = parseInt(data.product) || null
 
-    if (editMode) {
-      update({ ...data, id: selected.id })
-    } else {
-      create(data)
-    }
+    try {
+      if (editMode) {
+        await update({ ...data, id: selected.id })
+      } else {
+        await create(data)
+      }
 
-    setIsOpen(false)
-    setSelected(null)
-    setEditMode(false)
+      setIsOpen(false)
+      setSelected(null)
+      setEditMode(false)
+    } catch (error) {
+      console.error('Sales save failed:', error)
+      alert('Failed to save sale')
+    }
   }
 
   return (
@@ -107,50 +113,98 @@ export default function Sales() {
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-2">Manager Name</label>
-            <input name="manager_name" defaultValue={selected?.manager_name || ''} required className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:ring-2 focus:ring-primary focus:border-transparent" />
+            <input
+              name="manager_name"
+              defaultValue={selected?.manager_name || ''}
+              required
+              className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:ring-2 focus:ring-primary focus:border-transparent"
+            />
           </div>
+
           <div>
             <label className="block text-sm font-medium mb-2">Product</label>
-            <select name="product" defaultValue={selected?.product?.id || selected?.product || ''} required className="w-full px-3 py-2 border border-input rounded-lg bg-background">
+            <select
+              name="product"
+              defaultValue={selected?.product?.id || selected?.product || ''}
+              required
+              className="w-full px-3 py-2 border border-input rounded-lg bg-background"
+            >
               <option value="">Select product</option>
-              {products?.map((product) => (
+              {products.map((product) => (
                 <option key={product.id} value={product.id}>
                   {product.name} ({product.size}, {product.quality})
                 </option>
               ))}
             </select>
           </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">Rate</label>
-              <input name="rate" type="number" defaultValue={selected?.rate || ''} required className="w-full px-3 py-2 border border-input rounded-lg bg-background" />
+              <input
+                name="rate"
+                type="number"
+                defaultValue={selected?.rate || ''}
+                required
+                className="w-full px-3 py-2 border border-input rounded-lg bg-background"
+              />
             </div>
+
             <div>
               <label className="block text-sm font-medium mb-2">Quantity</label>
-              <input name="quantity" type="number" defaultValue={selected?.quantity || ''} required className="w-full px-3 py-2 border border-input rounded-lg bg-background" />
+              <input
+                name="quantity"
+                type="number"
+                defaultValue={selected?.quantity || ''}
+                required
+                className="w-full px-3 py-2 border border-input rounded-lg bg-background"
+              />
             </div>
           </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">Order Date</label>
-              <input name="date_of_order" type="date" defaultValue={selected?.date_of_order || ''} required className="w-full px-3 py-2 border border-input rounded-lg bg-background" />
+              <input
+                name="order_date"
+                type="date"
+                defaultValue={selected?.order_date || ''}
+                required
+                className="w-full px-3 py-2 border border-input rounded-lg bg-background"
+              />
             </div>
+
             <div>
               <label className="block text-sm font-medium mb-2">Dispatch Date</label>
-              <input name="date_of_dispatch" type="date" defaultValue={selected?.date_of_dispatch || ''} className="w-full px-3 py-2 border border-input rounded-lg bg-background" />
+              <input
+                name="dispatch_date"
+                type="date"
+                defaultValue={selected?.dispatch_date || ''}
+                required
+                className="w-full px-3 py-2 border border-input rounded-lg bg-background"
+              />
             </div>
           </div>
+
           <div>
             <label className="block text-sm font-medium mb-2">Size</label>
-            <input name="size" defaultValue={selected?.size || ''} className="w-full px-3 py-2 border border-input rounded-lg bg-background" />
+            <input
+              name="size"
+              defaultValue={selected?.size || ''}
+              className="w-full px-3 py-2 border border-input rounded-lg bg-background"
+            />
           </div>
+
           <div>
             <label className="block text-sm font-medium mb-2">Quality</label>
-            <input name="quality" defaultValue={selected?.quality || ''} className="w-full px-3 py-2 border border-input rounded-lg bg-background" />
+            <input
+              name="quality"
+              defaultValue={selected?.quality || ''}
+              className="w-full px-3 py-2 border border-input rounded-lg bg-background"
+            />
           </div>
         </div>
       </FormModal>
     </div>
   )
 }
-
