@@ -44,17 +44,17 @@ class Purchase(models.Model):
     total_quantity = models.IntegerField()
     date_received = models.DateField()
 
-    discount = models.FloatField(default=0)
-    advance_paid = models.FloatField(default=0)
-    balance_amount = models.FloatField()
+    discount = models.FloatField(default=0, blank=True)
+    advance_paid = models.FloatField(default=0, blank=True)
+    balance_amount = models.FloatField(default=0, blank=True)
 
-    vehicle_no = models.CharField(max_length=20)
-    driver_no = models.CharField(max_length=20)
+    vehicle_no = models.CharField(max_length=20, blank=True, default='')
+    driver_no = models.CharField(max_length=20, blank=True, default='')
 
-    dispatch_date = models.DateField()
-    receive_date = models.DateField()
+    dispatch_date = models.DateField(null=True, blank=True)
+    receive_date = models.DateField(null=True, blank=True)
 
-    transport_cost = models.FloatField()
+    transport_cost = models.FloatField(default=0, blank=True)
 
 
 # ---------------- SALES ----------------

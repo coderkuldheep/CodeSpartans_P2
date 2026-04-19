@@ -44,7 +44,7 @@ export default function Purchases() {
     }
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const formData = new FormData(e.target)
     const data = Object.fromEntries(formData)
@@ -55,15 +55,20 @@ export default function Purchases() {
     data.advance_amount = parseFloat(data.advance_amount) || 0
     data.total_quantity = parseInt(data.total_quantity) || 0
 
-    if (editMode) {
-      update({ ...data, id: selected.id })
-    } else {
-      create(data)
-    }
+    try {
+      if (editMode) {
+        await update({ ...data, id: selected.id })
+      } else {
+        await create(data)
+      }
 
-    setIsOpen(false)
-    setSelected(null)
-    setEditMode(false)
+      setIsOpen(false)
+      setSelected(null)
+      setEditMode(false)
+    } catch (error) {
+      console.error('Purchase save failed:', error)
+      alert('Failed to save purchase')
+    }
   }
 
   return (
@@ -182,7 +187,7 @@ export default function Purchases() {
             <input
               name="advance_amount"
               type="number"
-              defaultValue={selected?.advance_amount || ''}
+              defaultValue={selected?.advance_paid || ''}
               className="w-full px-3 py-2 border border-input rounded-lg bg-background"
             />
           </div>

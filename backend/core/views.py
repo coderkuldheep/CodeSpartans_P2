@@ -71,7 +71,6 @@ def get_purchases(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def add_purchase(request):
-    # ✅ Role-based restriction
     if request.user.role not in ['admin', 'purchase']:
         return Response({'error': 'Access Denied'}, status=403)
 
@@ -80,12 +79,14 @@ def add_purchase(request):
     total_rate = float(data.get('total_rate', 0) or 0)
     advance = float(data.get('advance_amount', 0) or 0)
 
+    data['advance_paid'] = advance
     data['balance_amount'] = total_rate - advance
 
     serializer = PurchaseSerializer(data=data)
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=201)
+
     return Response(serializer.errors, status=400)
 
 
@@ -104,16 +105,16 @@ def get_sales(request):
 def add_sales(request):
     serializer = SalesSerializer(data=request.data)
 
-    send_mail(
-        'New Sale Created',
-        'A new sale has been recorded.',
-        'kuldheepj@gmail.com',
-        ['codecodecode259@gmail.com'],
-        fail_silently=True,
-    )
-
     if serializer.is_valid():
         sales = serializer.save()
+
+        send_mail(
+            'New Sale Created',
+            'A new sale has been recorded.',
+            'kuldheepj@gmail.com',
+            ['codecodecode259@gmail.com'],
+            fail_silently=True,
+        )
 
         Production.objects.create(
             product=sales.product,
@@ -204,13 +205,14 @@ class PurchaseView(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
-        # ✅ Role-based restriction for router endpoint too
         if request.user.role not in ['admin', 'purchase']:
             return Response({'error': 'Access Denied'}, status=403)
 
         data = request.data.copy()
         total_rate = float(data.get('total_rate', 0) or 0)
         advance = float(data.get('advance_amount', 0) or 0)
+
+        data['advance_paid'] = advance
         data['balance_amount'] = total_rate - advance
 
         serializer = self.get_serializer(data=data)
