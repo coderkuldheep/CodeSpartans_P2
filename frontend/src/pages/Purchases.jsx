@@ -21,15 +21,15 @@ export default function Purchases() {
   const [editMode, setEditMode] = useState(false)
 
   const { role } = useAuth()
-
-  // ✅ Allow admin and purchase roles
   const canAdd = role === 'admin' || role === 'purchase'
 
-  const { data: purchases, loading, create, update, del } = useApi('purchases/')
+  const { data: purchases = [], loading, create, update, del } = useApi('purchases/')
+  const { data: suppliers = [] } = useApi('suppliers/')
+  const { data: products = [] } = useApi('products/')
 
   const filteredData = purchases.filter((purchase) =>
-    purchase.supplier_name.toLowerCase().includes(search.toLowerCase()) ||
-    purchase.total_rate.toString().includes(search)
+    (purchase.supplier_name || '').toLowerCase().includes(search.toLowerCase()) ||
+    String(purchase.total_rate || '').includes(search)
   )
 
   const handleEdit = (purchase) => {
@@ -49,6 +49,8 @@ export default function Purchases() {
     const formData = new FormData(e.target)
     const data = Object.fromEntries(formData)
 
+    data.supplier = parseInt(data.supplier)
+    data.product = parseInt(data.product)
     data.total_rate = parseFloat(data.total_rate) || 0
     data.advance_amount = parseFloat(data.advance_amount) || 0
     data.total_quantity = parseInt(data.total_quantity) || 0
@@ -90,6 +92,7 @@ export default function Purchases() {
             className="w-full pl-10 pr-4 py-3 border border-input rounded-xl bg-background focus:ring-2 focus:ring-primary focus:border-transparent"
           />
         </div>
+
         <Button variant="outline" size="sm">
           <Filter className="mr-2 h-4 w-4" />
           Filter
@@ -125,6 +128,11 @@ export default function Purchases() {
               className="w-full px-3 py-2 border border-input rounded-lg bg-background"
             >
               <option value="">Select supplier</option>
+              {suppliers.map((supplier) => (
+                <option key={supplier.id} value={supplier.id}>
+                  {supplier.name}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -137,6 +145,11 @@ export default function Purchases() {
               className="w-full px-3 py-2 border border-input rounded-lg bg-background"
             >
               <option value="">Select product</option>
+              {products.map((product) => (
+                <option key={product.id} value={product.id}>
+                  {product.name} - {product.size} - {product.quality}
+                </option>
+              ))}
             </select>
           </div>
 
