@@ -13,6 +13,9 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 from pathlib import Path
 from datetime import timedelta
 
+import dj_database_url
+import os
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-(yh_9*ofr@#tp)47vw#=o556&0ouvue*&p7rm&^#mx501=ex8d'
@@ -68,11 +71,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 
+import dj_database_url
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default='sqlite:///db.sqlite3'
+    )
 }
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -96,7 +100,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # ✅ CORS
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
-    "code-spartans-p2.vercel.app"
+    "https://code-spartans-p2.vercel.app"
 ]
 
 # ✅ JWT
@@ -109,8 +113,16 @@ REST_FRAMEWORK = {
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=5),
+    'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
 # ✅ CUSTOM USER
 AUTH_USER_MODEL = 'core.User'
 
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+ALLOWED_HOSTS = ['.onrender.com']
+
+DEBUG = False
