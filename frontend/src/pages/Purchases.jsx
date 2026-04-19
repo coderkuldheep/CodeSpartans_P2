@@ -20,13 +20,14 @@ export default function Purchases() {
   const [isOpen, setIsOpen] = useState(false)
   const [editMode, setEditMode] = useState(false)
 
-  const { role, user } = useAuth()
-  const allowedUsers = ['user1', 'user2']
-  const canAdd = allowedUsers.includes(user)
+  const { role } = useAuth()
+
+  // ✅ Allow admin and purchase roles
+  const canAdd = role === 'admin' || role === 'purchase'
 
   const { data: purchases, loading, create, update, del } = useApi('purchases/')
 
-  const filteredData = purchases.filter(purchase => 
+  const filteredData = purchases.filter((purchase) =>
     purchase.supplier_name.toLowerCase().includes(search.toLowerCase()) ||
     purchase.total_rate.toString().includes(search)
   )
@@ -47,6 +48,7 @@ export default function Purchases() {
     e.preventDefault()
     const formData = new FormData(e.target)
     const data = Object.fromEntries(formData)
+
     data.total_rate = parseFloat(data.total_rate) || 0
     data.advance_amount = parseFloat(data.advance_amount) || 0
     data.total_quantity = parseInt(data.total_quantity) || 0
@@ -66,13 +68,15 @@ export default function Purchases() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Purchases</h1>
-        {canAdd && (
+
+        {canAdd ? (
           <Button onClick={() => setIsOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Add Purchase
           </Button>
+        ) : (
+          <div className="text-destructive">Add restricted to authorized users</div>
         )}
-        {!canAdd && <div className="text-destructive">Add restricted to authorized users</div>}
       </div>
 
       <div className="flex gap-4">
@@ -114,37 +118,74 @@ export default function Purchases() {
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-2">Supplier</label>
-            <select name="supplier" defaultValue={selected?.supplier || ''} required className="w-full px-3 py-2 border border-input rounded-lg bg-background">
+            <select
+              name="supplier"
+              defaultValue={selected?.supplier || ''}
+              required
+              className="w-full px-3 py-2 border border-input rounded-lg bg-background"
+            >
               <option value="">Select supplier</option>
             </select>
           </div>
+
           <div>
             <label className="block text-sm font-medium mb-2">Product</label>
-            <select name="product" defaultValue={selected?.product || ''} required className="w-full px-3 py-2 border border-input rounded-lg bg-background">
+            <select
+              name="product"
+              defaultValue={selected?.product || ''}
+              required
+              className="w-full px-3 py-2 border border-input rounded-lg bg-background"
+            >
               <option value="">Select product</option>
             </select>
           </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">Total Rate</label>
-              <input name="total_rate" type="number" defaultValue={selected?.total_rate || ''} required className="w-full px-3 py-2 border border-input rounded-lg bg-background" />
+              <input
+                name="total_rate"
+                type="number"
+                defaultValue={selected?.total_rate || ''}
+                required
+                className="w-full px-3 py-2 border border-input rounded-lg bg-background"
+              />
             </div>
+
             <div>
               <label className="block text-sm font-medium mb-2">Quantity</label>
-              <input name="total_quantity" type="number" defaultValue={selected?.total_quantity || ''} required className="w-full px-3 py-2 border border-input rounded-lg bg-background" />
+              <input
+                name="total_quantity"
+                type="number"
+                defaultValue={selected?.total_quantity || ''}
+                required
+                className="w-full px-3 py-2 border border-input rounded-lg bg-background"
+              />
             </div>
           </div>
+
           <div>
             <label className="block text-sm font-medium mb-2">Advance Amount</label>
-            <input name="advance_amount" type="number" defaultValue={selected?.advance_amount || ''} className="w-full px-3 py-2 border border-input rounded-lg bg-background" />
+            <input
+              name="advance_amount"
+              type="number"
+              defaultValue={selected?.advance_amount || ''}
+              className="w-full px-3 py-2 border border-input rounded-lg bg-background"
+            />
           </div>
+
           <div>
             <label className="block text-sm font-medium mb-2">Date Received</label>
-            <input name="date_received" type="date" defaultValue={selected?.date_received || ''} required className="w-full px-3 py-2 border border-input rounded-lg bg-background" />
+            <input
+              name="date_received"
+              type="date"
+              defaultValue={selected?.date_received || ''}
+              required
+              className="w-full px-3 py-2 border border-input rounded-lg bg-background"
+            />
           </div>
         </div>
       </FormModal>
     </div>
   )
 }
-
