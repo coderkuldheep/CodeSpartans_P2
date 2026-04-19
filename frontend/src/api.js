@@ -1,13 +1,12 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: import.meta.env.DEV ? 'http://127.0.0.1:8000/api' : '/api',
+  baseURL: 'https://backend-i3ef.onrender.com/api',
   headers: {
     'Content-Type': 'application/json',
   }
 })
 
-// attach token
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
   if (token) {
@@ -16,7 +15,6 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// handle 401
 api.interceptors.response.use(
   (response) => response,
   (error) => {
