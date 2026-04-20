@@ -1,27 +1,44 @@
-import { useEffect } from 'react'
-import { Outlet, useLocation, useNavigation } from 'react-router-dom'
-import { Home, Users, ShoppingCart, DollarSign, Factory } from 'lucide-react'
+import { useState } from 'react'
+import { Outlet, useLocation, Navigate } from 'react-router-dom'
+import {
+  Home,
+  Users,
+  ShoppingCart,
+  DollarSign,
+  Factory,
+  LogOut,
+  Menu,
+  X,
+  ShieldAlert
+} from 'lucide-react'
 import { Layout, Sidebar } from './components/Layout.jsx'
 import { useAuth } from './contexts/AuthContext.jsx'
-import { NAV_CONFIG } from './constants/roles.js'
+import { NAV_CONFIG, DEFAULT_ROUTE_BY_ROLE } from './constants/roles.js'
 
-function ProtectedRoute({ children, roles = [] }) {
-  const { isAuthenticated, role } = useAuth()
-  const navigation = useNavigation()
+function ProtectedRoute({ children }) {
+  const { isAuthenticated } = useAuth()
 
   if (!isAuthenticated) {
-    window.location.href = '/login'
-    return null
-  }
-
-  if (roles.length && !roles.includes(role)) {
-    return <div className="flex items-center justify-center min-h-screen">Access Denied</div>
+    return <Navigate to="/login" replace />
   }
 
   return children
 }
 
-function NavLink({ name, href, icon }) {
+function RolePageGuard({ children }) {
+  const { role } = useAuth()
+  const location = useLocation()
+
+  const allowedPaths = (NAV_CONFIG[role] || []).map((item) => item.href)
+
+  if (!allowedPaths.includes(location.pathname)) {
+    return <Navigate to={DEFAULT_ROUTE_BY_ROLE[role] || '/login'} replace />
+  }
+
+  return children
+}
+
+function NavLink({ name, href, icon, onClick }) {
   const Icon = {
     LayoutDashboard: Home,
     Users: Users,
@@ -29,26 +46,48 @@ function NavLink({ name, href, icon }) {
     DollarSign: DollarSign,
     Factory: Factory
   }[icon] || Home
+
   const location = useLocation()
   const isActive = location.pathname === href
 
   return (
     <a
       href={href}
-      className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-all ${
+      onClick={onClick}
+      className={`group flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
         isActive
-          ? 'bg-primary text-primary-foreground font-medium'
-          : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+          ? 'bg-blue-600 text-white shadow-md'
+          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
       }`}
     >
-      <Icon className="w-5 h-5" />
-      <span>{name}</span>
+      <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-slate-500 group-hover:text-slate-800'}`} />
+      <span className="font-medium">{name}</span>
     </a>
   )
 }
 
+function UnauthorizedPage() {
+  const { role } = useAuth()
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
+      <div className="max-w-md w-full bg-white border border-slate-200 rounded-2xl shadow-lg p-8 text-center">
+        <div className="mx-auto w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mb-4">
+          <ShieldAlert className="w-8 h-8 text-red-500" />
+        </div>
+        <h1 className="text-2xl font-bold text-slate-900 mb-2">Access Denied</h1>
+        <p className="text-slate-600">
+          Your role <span className="font-semibold text-slate-800">{role}</span> does not have permission to open this page.
+        </p>
+      </div>
+    </div>
+  )
+}
+
 export default function App() {
-  const { isAuthenticated, role, logout } = useAuth()
+  const { isAuthenticated, role, logout, user } = useAuth()
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const location = useLocation()
 
   if (!isAuthenticated) {
     return <Outlet />
@@ -58,30 +97,104 @@ export default function App() {
 
   return (
     <ProtectedRoute>
-      <Layout>
-        <Sidebar>
-          <div className="p-4">
-            <h2 className="text-xl font-bold mb-6">Inventory System</h2>
-            <nav className="space-y-1">
-              {navItems.map((item) => (
-                <NavLink key={item.href} {...item} />
-              ))}
-            </nav>
-            <div className="mt-auto p-4">
-              <button
-                onClick={logout}
-                className="w-full flex items-center gap-2 text-destructive hover:text-destructive/80 p-2 rounded-lg"
-              >
-                <span>Logout</span>
-              </button>
+      <RolePageGuard>
+        <Layout>
+          {/* Mobile top bar */}
+          <div className="lg:hidden sticky top-0 z-30 flex items-center justify-between border-b bg-white px-4 py-3 shadow-sm">
+            <button
+              onClick={() => setMobileOpen(true)}
+              className="inline-flex items-center justify-center rounded-lg border border-slate-200 p-2 text-slate-700 hover:bg-slate-100"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+
+            <div className="text-center">
+              <h1 className="text-base font-bold text-slate-900">Inventory ERP</h1>
+              <p className="text-xs text-slate-500 capitalize">{role} Panel</p>
             </div>
+
+            <div className="w-9" />
           </div>
-        </Sidebar>
-        <main className="flex-1 p-8 overflow-auto">
-          <Outlet />
-        </main>
-      </Layout>
+
+          <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen}>
+            <div className="h-full flex flex-col bg-white">
+              {/* Brand */}
+              <div className="border-b border-slate-200 px-5 py-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-900">Inventory ERP</h2>
+                    <p className="text-sm text-slate-500">Company Control Panel</p>
+                  </div>
+
+                  <button
+                    onClick={() => setMobileOpen(false)}
+                    className="lg:hidden inline-flex items-center justify-center rounded-lg p-2 text-slate-600 hover:bg-slate-100"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* User card */}
+              <div className="mx-4 mt-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 p-4 text-white shadow-md">
+                <p className="text-xs uppercase tracking-wide text-blue-100">Signed in as</p>
+                <h3 className="mt-1 text-lg font-semibold">{user || 'User'}</h3>
+                <p className="text-sm text-blue-100 capitalize">{role}</p>
+              </div>
+
+              {/* Nav */}
+              <div className="flex-1 overflow-y-auto px-4 py-4">
+                <p className="px-2 pb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                  Navigation
+                </p>
+
+                <nav className="space-y-2">
+                  {navItems.map((item) => (
+                    <NavLink
+                      key={item.href}
+                      {...item}
+                      onClick={() => setMobileOpen(false)}
+                    />
+                  ))}
+                </nav>
+              </div>
+
+              {/* Footer actions */}
+              <div className="border-t border-slate-200 p-4">
+                <button
+                  onClick={logout}
+                  className="flex w-full items-center gap-3 rounded-xl border border-red-200 px-4 py-3 text-red-600 transition hover:bg-red-50"
+                >
+                  <LogOut className="w-5 h-5" />
+                  <span className="font-medium">Logout</span>
+                </button>
+              </div>
+            </div>
+          </Sidebar>
+
+          {/* Main content */}
+          <main className="min-h-screen overflow-auto bg-slate-50">
+            <div className="hidden lg:flex items-center justify-between border-b bg-white px-8 py-5 shadow-sm">
+              <div>
+                <h1 className="text-2xl font-bold text-slate-900">Inventory Management System</h1>
+                <p className="text-sm text-slate-500 capitalize">
+                  {role} Workspace
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700">
+                Current page: <span className="font-semibold text-slate-900">{location.pathname}</span>
+              </div>
+            </div>
+
+            <div className="p-4 sm:p-6 lg:p-8">
+              <Outlet />
+            </div>
+          </main>
+        </Layout>
+      </RolePageGuard>
     </ProtectedRoute>
   )
 }
 
+export { UnauthorizedPage }

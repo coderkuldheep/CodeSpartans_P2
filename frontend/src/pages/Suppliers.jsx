@@ -4,10 +4,11 @@ import { DataTable } from '../components/ui/table.jsx'
 import { FormModal } from '../components/ui/form-modal.jsx'
 import { Button } from '../components/ui/button.jsx'
 import { Plus, Search, Filter } from 'lucide-react'
+import { useAuth } from '../contexts/AuthContext.jsx'
 
 const COLUMNS = [
   { key: 'id', label: '#' },
-  { key: 'name', label: 'Name' },
+  { key: 'name', label: 'Supplier Name' },
   { key: 'contact', label: 'Contact' },
   { key: 'address', label: 'Address' },
 ]
@@ -18,11 +19,15 @@ export default function Suppliers() {
   const [isOpen, setIsOpen] = useState(false)
   const [editMode, setEditMode] = useState(false)
 
-  const { data: suppliers, loading, create, update, del } = useApi('suppliers/')
+  const { role } = useAuth()
+  const canManage = role === 'admin' || role === 'purchase'
 
-  const filteredData = suppliers.filter(supplier => 
-    supplier.name.toLowerCase().includes(search.toLowerCase()) ||
-    supplier.contact.includes(search)
+  const { data: suppliers = [], loading, create, update, del } = useApi('suppliers/')
+
+  const filteredData = suppliers.filter((supplier) =>
+    (supplier.name || '').toLowerCase().includes(search.toLowerCase()) ||
+    (supplier.contact || '').toLowerCase().includes(search.toLowerCase()) ||
+    (supplier.address || '').toLowerCase().includes(search.toLowerCase())
   )
 
   const handleEdit = (supplier) => {
@@ -37,35 +42,51 @@ export default function Suppliers() {
     }
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const formData = new FormData(e.target)
     const data = Object.fromEntries(formData)
 
-    if (editMode) {
-      update({ ...data, id: selected.id })
-    } else {
-      create(data)
-    }
+    try {
+      if (editMode) {
+        await update({ ...data, id: selected.id })
+      } else {
+        await create(data)
+      }
 
-    setIsOpen(false)
-    setSelected(null)
-    setEditMode(false)
+      setIsOpen(false)
+      setSelected(null)
+      setEditMode(false)
+    } catch (error) {
+      console.error('Supplier save failed:', error)
+      alert('Failed to save supplier')
+    }
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Suppliers</h1>
-        <Button onClick={() => setIsOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Supplier
-        </Button>
+    <div className="space-y-6 sm:space-y-8">
+      {/* Header */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Suppliers</h1>
+          <p className="text-sm sm:text-base text-muted-foreground mt-1">
+            Manage your supplier directory and contact details.
+          </p>
+        </div>
+
+        {canManage ? (
+          <Button onClick={() => setIsOpen(true)} className="w-full sm:w-auto">
+            <Plus className="mr-2 h-4 w-4" />
+            Add Supplier
+          </Button>
+        ) : (
+          <div className="text-destructive text-sm">Add restricted to authorized users</div>
+        )}
       </div>
 
-      {/* Search & Filter */}
-      <div className="flex gap-4">
-        <div className="relative flex-1 max-w-md">
+      {/* Search / Filter */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1 max-w-full sm:max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             type="text"
@@ -75,20 +96,23 @@ export default function Suppliers() {
             className="w-full pl-10 pr-4 py-3 border border-input rounded-xl bg-background focus:ring-2 focus:ring-primary focus:border-transparent"
           />
         </div>
-        <Button variant="outline" size="sm">
+
+        <Button variant="outline" size="sm" className="w-full sm:w-auto">
           <Filter className="mr-2 h-4 w-4" />
           Filter
         </Button>
       </div>
 
+      {/* Table */}
       <DataTable
         columns={COLUMNS}
         data={filteredData}
         loading={loading}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
+        onEdit={canManage ? handleEdit : () => {}}
+        onDelete={canManage ? handleDelete : () => {}}
       />
 
+      {/* Modal */}
       <FormModal
         isOpen={isOpen}
         onClose={() => {
@@ -102,20 +126,37 @@ export default function Suppliers() {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-2">Name</label>
-            <input name="name" defaultValue={selected?.name || ''} required className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:ring-2 focus:ring-primary focus:border-transparent" />
+            <label className="block text-sm font-medium mb-2">Supplier Name</label>
+            <input
+              name="name"
+              defaultValue={selected?.name || ''}
+              required
+              className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:ring-2 focus:ring-primary focus:border-transparent"
+            />
           </div>
+
           <div>
             <label className="block text-sm font-medium mb-2">Contact</label>
-            <input name="contact" defaultValue={selected?.contact || ''} required className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:ring-2 focus:ring-primary focus:border-transparent" />
+            <input
+              name="contact"
+              defaultValue={selected?.contact || ''}
+              required
+              className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:ring-2 focus:ring-primary focus:border-transparent"
+            />
           </div>
+
           <div>
             <label className="block text-sm font-medium mb-2">Address</label>
-            <textarea name="address" rows="3" defaultValue={selected?.address || ''} required className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:ring-2 focus:ring-primary focus:border-transparent" />
+            <textarea
+              name="address"
+              defaultValue={selected?.address || ''}
+              rows="4"
+              required
+              className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+            />
           </div>
         </div>
       </FormModal>
     </div>
   )
 }
-

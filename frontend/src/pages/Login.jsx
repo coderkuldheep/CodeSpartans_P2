@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { Button } from '../components/ui/button.jsx'
-import { Lock, User, Mail } from 'lucide-react'
+import { Lock, User } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { DEFAULT_ROUTE_BY_ROLE } from '../constants/roles.js'
 
 export default function Login() {
   const [username, setUsername] = useState('')
@@ -14,11 +15,18 @@ export default function Login() {
   const handleSubmit = (e) => {
     e.preventDefault()
     setError('')
+
     login(
       { username, password },
       {
         onSuccess: () => {
-          navigate('/dashboard')
+          const savedRole = localStorage.getItem('role')
+        
+          if (savedRole === 'admin') navigate('/dashboard')
+          else if (savedRole === 'purchase') navigate('/purchases')
+          else if (savedRole === 'sales') navigate('/sales')
+          else if (savedRole === 'production') navigate('/production')
+          else navigate('/login')
         },
         onError: (err) => {
           setError(err.response?.data?.error || 'Login failed')
@@ -37,13 +45,13 @@ export default function Login() {
           <h2 className="text-3xl font-bold tracking-tight">Welcome back</h2>
           <p className="text-muted-foreground mt-2">Sign in to your account</p>
         </div>
-        
+
         {error && (
           <div className="bg-destructive/10 border border-destructive/30 text-destructive rounded-lg p-4">
             {error}
           </div>
         )}
-        
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-sm font-medium mb-2">Username</label>
@@ -59,7 +67,7 @@ export default function Login() {
               />
             </div>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium mb-2">Password</label>
             <div className="relative">
@@ -74,7 +82,7 @@ export default function Login() {
               />
             </div>
           </div>
-          
+
           <Button type="submit" className="w-full h-12" disabled={isLoading}>
             {isLoading ? 'Signing in...' : 'Sign in'}
           </Button>
@@ -83,4 +91,3 @@ export default function Login() {
     </div>
   )
 }
-
