@@ -18,6 +18,10 @@ from .serializers import (
 )
 
 
+def role_denied(request, allowed_roles):
+    return request.user.role not in allowed_roles
+
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login_view(request):
@@ -43,6 +47,9 @@ def login_view(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_suppliers(request):
+    if role_denied(request, ['admin', 'purchase']):
+        return Response({'error': 'Access Denied'}, status=403)
+
     suppliers = Supplier.objects.all()
     serializer = SupplierSerializer(suppliers, many=True)
     return Response(serializer.data)
@@ -51,6 +58,9 @@ def get_suppliers(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def add_supplier(request):
+    if role_denied(request, ['admin', 'purchase']):
+        return Response({'error': 'Access Denied'}, status=403)
+
     serializer = SupplierSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
@@ -63,6 +73,9 @@ def add_supplier(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_purchases(request):
+    if role_denied(request, ['admin', 'purchase']):
+        return Response({'error': 'Access Denied'}, status=403)
+
     purchases = Purchase.objects.all().order_by('-id')
     serializer = PurchaseSerializer(purchases, many=True)
     return Response(serializer.data)
@@ -71,7 +84,7 @@ def get_purchases(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def add_purchase(request):
-    if request.user.role not in ['admin', 'purchase']:
+    if role_denied(request, ['admin', 'purchase']):
         return Response({'error': 'Access Denied'}, status=403)
 
     data = request.data.copy()
@@ -95,6 +108,9 @@ def add_purchase(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_sales(request):
+    if role_denied(request, ['admin', 'sales']):
+        return Response({'error': 'Access Denied'}, status=403)
+
     sales = Sales.objects.all().order_by('-id')
     serializer = SalesSerializer(sales, many=True)
     return Response(serializer.data)
@@ -103,6 +119,9 @@ def get_sales(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def add_sales(request):
+    if role_denied(request, ['admin', 'sales']):
+        return Response({'error': 'Access Denied'}, status=403)
+
     serializer = SalesSerializer(data=request.data)
 
     if serializer.is_valid():
@@ -139,6 +158,9 @@ def add_sales(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_production(request):
+    if role_denied(request, ['admin', 'production']):
+        return Response({'error': 'Access Denied'}, status=403)
+
     production = Production.objects.all().order_by('-id')
     serializer = ProductionSerializer(production, many=True)
     return Response(serializer.data)
@@ -149,6 +171,9 @@ def get_production(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def dashboard(request):
+    if role_denied(request, ['admin']):
+        return Response({'error': 'Access Denied'}, status=403)
+
     today = now().date()
 
     total_purchase_today = Purchase.objects.filter(date_received=today).aggregate(
@@ -186,6 +211,9 @@ def dashboard(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def sales_chart(request):
+    if role_denied(request, ['admin']):
+        return Response({'error': 'Access Denied'}, status=403)
+
     data = Sales.objects.values('order_date').annotate(
         total=Sum('rate')
     ).order_by('order_date')
@@ -198,14 +226,54 @@ class SupplierView(viewsets.ModelViewSet):
     serializer_class = SupplierSerializer
     permission_classes = [IsAuthenticated]
 
+    def list(self, request, *args, **kwargs):
+        if role_denied(request, ['admin', 'purchase']):
+            return Response({'error': 'Access Denied'}, status=403)
+        return super().list(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        if role_denied(request, ['admin', 'purchase']):
+            return Response({'error': 'Access Denied'}, status=403)
+        return super().retrieve(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        if role_denied(request, ['admin', 'purchase']):
+            return Response({'error': 'Access Denied'}, status=403)
+        return super().create(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        if role_denied(request, ['admin', 'purchase']):
+            return Response({'error': 'Access Denied'}, status=403)
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        if role_denied(request, ['admin', 'purchase']):
+            return Response({'error': 'Access Denied'}, status=403)
+        return super().partial_update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        if role_denied(request, ['admin', 'purchase']):
+            return Response({'error': 'Access Denied'}, status=403)
+        return super().destroy(request, *args, **kwargs)
+
 
 class PurchaseView(viewsets.ModelViewSet):
     queryset = Purchase.objects.all()
     serializer_class = PurchaseSerializer
     permission_classes = [IsAuthenticated]
 
+    def list(self, request, *args, **kwargs):
+        if role_denied(request, ['admin', 'purchase']):
+            return Response({'error': 'Access Denied'}, status=403)
+        return super().list(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        if role_denied(request, ['admin', 'purchase']):
+            return Response({'error': 'Access Denied'}, status=403)
+        return super().retrieve(request, *args, **kwargs)
+
     def create(self, request, *args, **kwargs):
-        if request.user.role not in ['admin', 'purchase']:
+        if role_denied(request, ['admin', 'purchase']):
             return Response({'error': 'Access Denied'}, status=403)
 
         data = request.data.copy()
@@ -220,11 +288,71 @@ class PurchaseView(viewsets.ModelViewSet):
         serializer.save()
         return Response(serializer.data, status=201)
 
+    def update(self, request, *args, **kwargs):
+        if role_denied(request, ['admin', 'purchase']):
+            return Response({'error': 'Access Denied'}, status=403)
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        if role_denied(request, ['admin', 'purchase']):
+            return Response({'error': 'Access Denied'}, status=403)
+        return super().partial_update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        if role_denied(request, ['admin', 'purchase']):
+            return Response({'error': 'Access Denied'}, status=403)
+        return super().destroy(request, *args, **kwargs)
+
 
 class SalesView(viewsets.ModelViewSet):
     queryset = Sales.objects.all()
     serializer_class = SalesSerializer
     permission_classes = [IsAuthenticated]
+
+    def list(self, request, *args, **kwargs):
+        if role_denied(request, ['admin', 'sales']):
+            return Response({'error': 'Access Denied'}, status=403)
+        return super().list(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        if role_denied(request, ['admin', 'sales']):
+            return Response({'error': 'Access Denied'}, status=403)
+        return super().retrieve(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        if role_denied(request, ['admin', 'sales']):
+            return Response({'error': 'Access Denied'}, status=403)
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        sales = serializer.save()
+
+        Production.objects.create(
+            product=sales.product,
+            quantity=sales.quantity,
+            size=sales.product.size,
+            quality=sales.product.quality,
+            requested_date=sales.order_date,
+            proposed_date=sales.dispatch_date,
+            actual_date=None
+        )
+
+        return Response(serializer.data, status=201)
+
+    def update(self, request, *args, **kwargs):
+        if role_denied(request, ['admin', 'sales']):
+            return Response({'error': 'Access Denied'}, status=403)
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        if role_denied(request, ['admin', 'sales']):
+            return Response({'error': 'Access Denied'}, status=403)
+        return super().partial_update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        if role_denied(request, ['admin', 'sales']):
+            return Response({'error': 'Access Denied'}, status=403)
+        return super().destroy(request, *args, **kwargs)
 
 
 class ProductionView(viewsets.ModelViewSet):
@@ -232,8 +360,68 @@ class ProductionView(viewsets.ModelViewSet):
     serializer_class = ProductionSerializer
     permission_classes = [IsAuthenticated]
 
+    def list(self, request, *args, **kwargs):
+        if role_denied(request, ['admin', 'production']):
+            return Response({'error': 'Access Denied'}, status=403)
+        return super().list(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        if role_denied(request, ['admin', 'production']):
+            return Response({'error': 'Access Denied'}, status=403)
+        return super().retrieve(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        if role_denied(request, ['admin', 'production']):
+            return Response({'error': 'Access Denied'}, status=403)
+        return super().create(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        if role_denied(request, ['admin', 'production']):
+            return Response({'error': 'Access Denied'}, status=403)
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        if role_denied(request, ['admin', 'production']):
+            return Response({'error': 'Access Denied'}, status=403)
+        return super().partial_update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        if role_denied(request, ['admin', 'production']):
+            return Response({'error': 'Access Denied'}, status=403)
+        return super().destroy(request, *args, **kwargs)
+
 
 class ProductView(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [IsAuthenticated]
+
+    def list(self, request, *args, **kwargs):
+        if role_denied(request, ['admin', 'purchase', 'sales', 'production']):
+            return Response({'error': 'Access Denied'}, status=403)
+        return super().list(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        if role_denied(request, ['admin', 'purchase', 'sales', 'production']):
+            return Response({'error': 'Access Denied'}, status=403)
+        return super().retrieve(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        if role_denied(request, ['admin']):
+            return Response({'error': 'Access Denied'}, status=403)
+        return super().create(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        if role_denied(request, ['admin']):
+            return Response({'error': 'Access Denied'}, status=403)
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        if role_denied(request, ['admin']):
+            return Response({'error': 'Access Denied'}, status=403)
+        return super().partial_update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        if role_denied(request, ['admin']):
+            return Response({'error': 'Access Denied'}, status=403)
+        return super().destroy(request, *args, **kwargs)
