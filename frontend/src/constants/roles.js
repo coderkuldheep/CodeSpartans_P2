@@ -8,24 +8,30 @@ export const ROLES = {
 export const NAV_CONFIG = {
   admin: [
     { name: 'Dashboard', href: '/dashboard', icon: 'LayoutDashboard' },
+    { name: 'Products', href: '/products', icon: 'Package' },
     { name: 'Suppliers', href: '/suppliers', icon: 'Users' },
     { name: 'Purchases', href: '/purchases', icon: 'ShoppingCart' },
     { name: 'Sales', href: '/sales', icon: 'DollarSign' },
     { name: 'Production', href: '/production', icon: 'Factory' },
   ],
   purchase: [
-    { name: 'Dashboard', href: '/dashboard', icon: 'LayoutDashboard' },
+    { name: 'Products', href: '/products', icon: 'Package' },
     { name: 'Suppliers', href: '/suppliers', icon: 'Users' },
     { name: 'Purchases', href: '/purchases', icon: 'ShoppingCart' },
   ],
   sales: [
-    { name: 'Dashboard', href: '/dashboard', icon: 'LayoutDashboard' },
+    { name: 'Products', href: '/products', icon: 'Package' },
     { name: 'Sales', href: '/sales', icon: 'DollarSign' },
-    { name: 'Production', href: '/production', icon: 'Factory' },
   ],
   production: [
-    { name: 'Dashboard', href: '/dashboard', icon: 'LayoutDashboard' },
+    { name: 'Products', href: '/products', icon: 'Package' },
     { name: 'Production', href: '/production', icon: 'Factory' },
   ]
 }
 
+export const DEFAULT_ROUTE_BY_ROLE = {
+  admin: '/dashboard',
+  purchase: '/purchases',
+  sales: '/sales',
+  production: '/production',
+}

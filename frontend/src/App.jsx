@@ -9,7 +9,8 @@ import {
   LogOut,
   Menu,
   X,
-  ShieldAlert
+  ShieldAlert,
+  Package
 } from 'lucide-react'
 import { Layout, Sidebar } from './components/Layout.jsx'
 import { useAuth } from './contexts/AuthContext.jsx'
@@ -44,7 +45,8 @@ function NavLink({ name, href, icon, onClick }) {
     Users: Users,
     ShoppingCart: ShoppingCart,
     DollarSign: DollarSign,
-    Factory: Factory
+    Factory: Factory,
+    Package: Package
   }[icon] || Home
 
   const location = useLocation()
@@ -66,24 +68,6 @@ function NavLink({ name, href, icon, onClick }) {
   )
 }
 
-function UnauthorizedPage() {
-  const { role } = useAuth()
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
-      <div className="max-w-md w-full bg-white border border-slate-200 rounded-2xl shadow-lg p-8 text-center">
-        <div className="mx-auto w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mb-4">
-          <ShieldAlert className="w-8 h-8 text-red-500" />
-        </div>
-        <h1 className="text-2xl font-bold text-slate-900 mb-2">Access Denied</h1>
-        <p className="text-slate-600">
-          Your role <span className="font-semibold text-slate-800">{role}</span> does not have permission to open this page.
-        </p>
-      </div>
-    </div>
-  )
-}
-
 export default function App() {
   const { isAuthenticated, role, logout, user } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -99,7 +83,6 @@ export default function App() {
     <ProtectedRoute>
       <RolePageGuard>
         <Layout>
-          {/* Mobile top bar */}
           <div className="lg:hidden sticky top-0 z-30 flex items-center justify-between border-b bg-white px-4 py-3 shadow-sm">
             <button
               onClick={() => setMobileOpen(true)}
@@ -118,7 +101,6 @@ export default function App() {
 
           <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen}>
             <div className="h-full flex flex-col bg-white">
-              {/* Brand */}
               <div className="border-b border-slate-200 px-5 py-5">
                 <div className="flex items-center justify-between">
                   <div>
@@ -135,14 +117,12 @@ export default function App() {
                 </div>
               </div>
 
-              {/* User card */}
               <div className="mx-4 mt-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 p-4 text-white shadow-md">
                 <p className="text-xs uppercase tracking-wide text-blue-100">Signed in as</p>
                 <h3 className="mt-1 text-lg font-semibold">{user || 'User'}</h3>
                 <p className="text-sm text-blue-100 capitalize">{role}</p>
               </div>
 
-              {/* Nav */}
               <div className="flex-1 overflow-y-auto px-4 py-4">
                 <p className="px-2 pb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
                   Navigation
@@ -159,7 +139,6 @@ export default function App() {
                 </nav>
               </div>
 
-              {/* Footer actions */}
               <div className="border-t border-slate-200 p-4">
                 <button
                   onClick={logout}
@@ -172,14 +151,11 @@ export default function App() {
             </div>
           </Sidebar>
 
-          {/* Main content */}
           <main className="min-h-screen overflow-auto bg-slate-50">
             <div className="hidden lg:flex items-center justify-between border-b bg-white px-8 py-5 shadow-sm">
               <div>
                 <h1 className="text-2xl font-bold text-slate-900">Inventory Management System</h1>
-                <p className="text-sm text-slate-500 capitalize">
-                  {role} Workspace
-                </p>
+                <p className="text-sm text-slate-500 capitalize">{role} Workspace</p>
               </div>
 
               <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700">
@@ -196,5 +172,3 @@ export default function App() {
     </ProtectedRoute>
   )
 }
-
-export { UnauthorizedPage }

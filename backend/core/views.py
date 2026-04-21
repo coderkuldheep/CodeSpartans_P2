@@ -390,7 +390,6 @@ class ProductionView(viewsets.ModelViewSet):
             return Response({'error': 'Access Denied'}, status=403)
         return super().destroy(request, *args, **kwargs)
 
-
 class ProductView(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
@@ -408,20 +407,20 @@ class ProductView(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         if role_denied(request, ['admin']):
-            return Response({'error': 'Access Denied'}, status=403)
+            return Response({'error': 'Only admin can add products'}, status=403)
         return super().create(request, *args, **kwargs)
 
     def update(self, request, *args, **kwargs):
         if role_denied(request, ['admin']):
-            return Response({'error': 'Access Denied'}, status=403)
+            return Response({'error': 'Only admin can update products'}, status=403)
         return super().update(request, *args, **kwargs)
 
     def partial_update(self, request, *args, **kwargs):
         if role_denied(request, ['admin']):
-            return Response({'error': 'Access Denied'}, status=403)
+            return Response({'error': 'Only admin can update products'}, status=403)
         return super().partial_update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
         if role_denied(request, ['admin']):
-            return Response({'error': 'Access Denied'}, status=403)
-        return super().destroy(request, *args, **kwargs)
+            return Response({'error': 'Only admin can delete products'}, status=403)
+        return super().destroy(request, *args, **kwargs)  
