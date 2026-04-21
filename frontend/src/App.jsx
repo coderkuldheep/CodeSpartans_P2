@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Outlet, useLocation, Navigate } from 'react-router-dom'
+import { Outlet, useLocation, Navigate, Link } from 'react-router-dom'
 import {
   Home,
   Users,
@@ -9,7 +9,6 @@ import {
   LogOut,
   Menu,
   X,
-  ShieldAlert,
   Package
 } from 'lucide-react'
 import { Layout, Sidebar } from './components/Layout.jsx'
@@ -46,15 +45,15 @@ function NavLink({ name, href, icon, onClick }) {
     ShoppingCart: ShoppingCart,
     DollarSign: DollarSign,
     Factory: Factory,
-    Package: Package
+    Package: Package,
   }[icon] || Home
 
   const location = useLocation()
   const isActive = location.pathname === href
 
   return (
-    <a
-      href={href}
+    <Link
+      to={href}
       onClick={onClick}
       className={`group flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
         isActive
@@ -62,9 +61,13 @@ function NavLink({ name, href, icon, onClick }) {
           : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
       }`}
     >
-      <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-slate-500 group-hover:text-slate-800'}`} />
+      <Icon
+        className={`w-5 h-5 ${
+          isActive ? 'text-white' : 'text-slate-500 group-hover:text-slate-800'
+        }`}
+      />
       <span className="font-medium">{name}</span>
-    </a>
+    </Link>
   )
 }
 
@@ -83,6 +86,7 @@ export default function App() {
     <ProtectedRoute>
       <RolePageGuard>
         <Layout>
+          {/* Mobile top bar */}
           <div className="lg:hidden sticky top-0 z-30 flex items-center justify-between border-b bg-white px-4 py-3 shadow-sm">
             <button
               onClick={() => setMobileOpen(true)}
