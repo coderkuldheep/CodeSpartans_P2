@@ -8,7 +8,7 @@ import { useAuth } from '../contexts/AuthContext.jsx'
 
 const COLUMNS = [
   { key: 'id', label: '#' },
-  { key: 'name', label: 'Product Name' },
+  { key: 'name', label: 'Name' },
   { key: 'size', label: 'Size' },
   { key: 'quality', label: 'Quality' },
 ]
@@ -22,36 +22,23 @@ export default function Products() {
   const { role } = useAuth()
   const canManage = role === 'admin'
 
-  const {
-    data: products = [],
-    loading,
-    create,
-    update,
-    del
-  } = useApi('products/')
+  const { data: products = [], loading, create, update, del } = useApi('products/')
 
   const filteredData = products.filter((product) =>
-    (product?.name || '').toLowerCase().includes(search.toLowerCase()) ||
-    (product?.size || '').toLowerCase().includes(search.toLowerCase()) ||
-    (product?.quality || '').toLowerCase().includes(search.toLowerCase())
+    (product.name || '').toLowerCase().includes(search.toLowerCase()) ||
+    (product.size || '').toLowerCase().includes(search.toLowerCase()) ||
+    (product.quality || '').toLowerCase().includes(search.toLowerCase())
   )
 
-  const handleEdit = (product) => {
-    setSelected(product)
+  const handleEdit = (item) => {
+    setSelected(item)
     setEditMode(true)
     setIsOpen(true)
   }
 
-  const handleDelete = async (product) => {
-    if (!canManage) return
-
+  const handleDelete = (item) => {
     if (confirm('Delete this product?')) {
-      try {
-        await del(product.id)
-      } catch (error) {
-        console.error('Delete product failed:', error)
-        alert('Failed to delete product')
-      }
+      del(item.id)
     }
   }
 
@@ -70,52 +57,48 @@ export default function Products() {
       setIsOpen(false)
       setSelected(null)
       setEditMode(false)
-    } catch (error) {
-      console.error('Product save failed:', error)
+    } catch (err) {
+      console.error('Product save failed:', err)
       alert('Failed to save product')
     }
   }
 
   return (
-    <div className="space-y-6 sm:space-y-8">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Products</h1>
-          <p className="text-sm sm:text-base text-muted-foreground mt-1">
-            View and manage the shared product catalog.
-          </p>
-        </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-3xl font-bold tracking-tight">Products</h1>
 
         {canManage ? (
-          <Button onClick={() => setIsOpen(true)} className="w-full sm:w-auto">
+          <Button onClick={() => setIsOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Add Product
           </Button>
         ) : (
-          <div className="text-sm text-muted-foreground">
-            Only admin can add, edit, or delete products
-          </div>
+          <div className="text-destructive">Only admin can manage products</div>
         )}
       </div>
 
+      {/* Search */}
       <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1 max-w-full sm:max-w-md">
+        <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             type="text"
             placeholder="Search products..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-input rounded-xl bg-background focus:ring-2 focus:ring-primary focus:border-transparent"
+            className="w-full pl-10 pr-4 py-3 border border-input rounded-xl bg-background"
           />
         </div>
 
-        <Button variant="outline" size="sm" className="w-full sm:w-auto">
+        <Button variant="outline" size="sm">
           <Filter className="mr-2 h-4 w-4" />
           Filter
         </Button>
       </div>
 
+      {/* Table */}
       <DataTable
         columns={COLUMNS}
         data={filteredData}
@@ -124,6 +107,7 @@ export default function Products() {
         onDelete={canManage ? handleDelete : () => {}}
       />
 
+      {/* Modal */}
       <FormModal
         isOpen={isOpen}
         onClose={() => {
@@ -133,38 +117,32 @@ export default function Products() {
         }}
         title={editMode ? 'Edit Product' : 'Add Product'}
         onSubmit={handleSubmit}
-        loading={editMode ? update?.updateLoading : create?.createLoading}
+        loading={editMode ? update.updateLoading : create.createLoading}
       >
         <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">Product Name</label>
-            <input
-              name="name"
-              defaultValue={selected?.name || ''}
-              required
-              className="w-full px-3 py-2 border border-input rounded-lg bg-background"
-            />
-          </div>
+          <input
+            name="name"
+            defaultValue={selected?.name || ''}
+            placeholder="Product Name"
+            required
+            className="w-full px-3 py-2 border rounded-lg"
+          />
 
-          <div>
-            <label className="block text-sm font-medium mb-2">Size</label>
-            <input
-              name="size"
-              defaultValue={selected?.size || ''}
-              required
-              className="w-full px-3 py-2 border border-input rounded-lg bg-background"
-            />
-          </div>
+          <input
+            name="size"
+            defaultValue={selected?.size || ''}
+            placeholder="Size"
+            required
+            className="w-full px-3 py-2 border rounded-lg"
+          />
 
-          <div>
-            <label className="block text-sm font-medium mb-2">Quality</label>
-            <input
-              name="quality"
-              defaultValue={selected?.quality || ''}
-              required
-              className="w-full px-3 py-2 border border-input rounded-lg bg-background"
-            />
-          </div>
+          <input
+            name="quality"
+            defaultValue={selected?.quality || ''}
+            placeholder="Quality"
+            required
+            className="w-full px-3 py-2 border rounded-lg"
+          />
         </div>
       </FormModal>
     </div>

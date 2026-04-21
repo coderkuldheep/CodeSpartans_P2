@@ -1,11 +1,12 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { RouterProvider, createBrowserRouter, Outlet } from 'react-router-dom'
+import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext.jsx'
 import App from './App.jsx'
 import Login from './pages/Login.jsx'
 import Dashboard from './pages/Dashboard.jsx'
+import Products from './pages/Products.jsx'
 import Suppliers from './pages/Suppliers.jsx'
 import Purchases from './pages/Purchases.jsx'
 import Sales from './pages/Sales.jsx'
@@ -25,7 +26,11 @@ const router = createBrowserRouter([
   {
     path: '/',
     element: <App />,
-    errorElement: <div className="p-8 text-center text-destructive font-medium">Something went wrong!</div>,
+    errorElement: (
+      <div className="p-8 text-center text-destructive font-medium">
+        Something went wrong!
+      </div>
+    ),
     children: [
       {
         index: true,
@@ -38,6 +43,10 @@ const router = createBrowserRouter([
       {
         path: 'dashboard',
         element: <Dashboard />,
+      },
+      {
+        path: 'products',
+        element: <Products />,
       },
       {
         path: 'suppliers',
@@ -68,4 +77,3 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     </QueryClientProvider>
   </React.StrictMode>,
 )
-
